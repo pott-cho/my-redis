@@ -9,7 +9,10 @@ async fn main() {
     loop {
         // 두번째 아이템이 IP 와 port 정보를 갖고 있다.
         let (socket, _) = listener.accept().await.unwrap();
-        process(socket).await;
+        // 연결될때 마다 새로운 비동기 작업이 spawn 되서 소유권을 넘겨받아 처리한다. 
+        tokio::spawn(async move {
+            process(socket).await;
+        });
     }
 }
 
