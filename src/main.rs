@@ -1,18 +1,26 @@
-use mini_redis::{client, Result};
+use tokio::net::{TcpListener, TcpStream};
+use mini_redis::{Connection, Frame};
 
 #[tokio::main]
-async fn main() -> Result<()> {
-    // mini-redis 와 연결한다.
-    let mut client = client::connect("127.0.0.1:6379").await?;
+async fn main() {
+    // 소켓 통신을 바인딩
+    let listener = TcpListener::bind("127.0.0.1:6379").await.unwrap();
 
-    // key: hello, value: world 로 입력
-    client.set("hello", "world".into()).await?;
+    loop {
+        // 두번째 아이템이 IP 와 port 정보를 갖고 있다.
+        let (socket, _) = listener.accept().await.unwrap();
+        process(socket).await;
+    }
+}
 
-    // hello 키로 값 얻기
-    let result = client.get("hello").await?;
+async fn process(socket: TcpStream) {
+    let mut connection = Connection::new(socket);
 
-    println!("서버로부터 값을 받았습니다: {:?}", result);
-    // 서버로부터 값을 받았습니다: Some(b"world")
+    if let Some(frame) = connection.read_frame().await.unwrap() {
+        println!("GOT: {:?}", frame);
 
-    Ok(())
+        // Error 를 반환한다.
+        let response = Frame::Error("unimplemented".to_string());
+        connection.write_frame(&response).await.unwrap();
+    }
 }
