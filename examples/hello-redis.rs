@@ -1,7 +1,7 @@
 use mini_redis::{client, Result};
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> Result<()> { 
     // mini-redis 와 연결한다.
     let mut client = client::connect("127.0.0.1:6379").await?;
 
